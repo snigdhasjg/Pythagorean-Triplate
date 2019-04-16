@@ -13,17 +13,17 @@ def get_file_array(file_content):
     return file_array
 
 
-def divide_x_and_y(input_array):
-    input_x = []
-    input_y = []
-    for each_array in input_array:
-        tuple_x = (each_array[0], each_array[1])
-        input_x.append(tuple_x)
-        input_y.append(each_array[2])
-    return input_x, input_y
+# def divide_x_and_y(input_array):
+#     input_x = []
+#     input_y = []
+#     for each_array in input_array:
+#         tuple_x = (each_array[0], each_array[1])
+#         input_x.append(tuple_x)
+#         input_y.append(each_array[2])
+#     return input_x, input_y
 
 
-def main():
+def get_all_points():
     file_name = 'few_triple.txt'
     file_content = open_and_get_file_content(file_name)
     all_triple = get_file_array(file_content)
@@ -31,5 +31,5 @@ def main():
 
 
 if __name__ == '__main__':
-    print(main())
+    print(get_all_points())
 
