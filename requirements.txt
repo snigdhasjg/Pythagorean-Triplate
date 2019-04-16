@@ -1,0 +1,3 @@
+deap
+numpy
+-c conda-forge deap
