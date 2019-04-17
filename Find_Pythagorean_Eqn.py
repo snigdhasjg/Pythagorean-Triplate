@@ -28,12 +28,17 @@ def my_power(number, p):
     return number ** p
 
 
+def my_root(number, q):
+    return number ** (1 / q)
+
+
 pset = gp.PrimitiveSet("MAIN", 2)
 pset.addPrimitive(operator.add, 2)
 # pset.addPrimitive(operator.sub, 2)
 pset.addPrimitive(operator.mul, 2)
 pset.addPrimitive(math.sqrt, 1)
-# pset.addPrimitive(myPower, 3)
+# pset.addPrimitive(my_power, 2)
+# pset.addPrimitive(my_root, 2)
 # pset.addPrimitive(safeDiv, 2)
 # pset.addPrimitive(operator.neg, 1)
 # pset.addPrimitive(math.cos, 1)
