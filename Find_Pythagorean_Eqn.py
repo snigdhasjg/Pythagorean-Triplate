@@ -32,11 +32,11 @@ def my_root(number, q):
     return number ** (1 / q)
 
 
-pset = gp.PrimitiveSet("MAIN", 2)
+pset = gp.PrimitiveSet("MAIN", 3)
 pset.addPrimitive(operator.add, 2)
-# pset.addPrimitive(operator.sub, 2)
+pset.addPrimitive(operator.sub, 2)
 pset.addPrimitive(operator.mul, 2)
-pset.addPrimitive(math.sqrt, 1)
+# pset.addPrimitive(math.sqrt, 1)
 # pset.addPrimitive(my_power, 2)
 # pset.addPrimitive(my_root, 2)
 # pset.addPrimitive(safeDiv, 2)
@@ -45,7 +45,7 @@ pset.addPrimitive(math.sqrt, 1)
 # pset.addPrimitive(math.sin, 1)
 # pset.addPrimitive(abs, 1)
 # pset.addEphemeralConstant("rand101", lambda: random.randint(1, 2))
-pset.renameArguments(ARG0='A', ARG1='B')
+pset.renameArguments(ARG0='A', ARG1='B', ARG2='C')
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
@@ -62,7 +62,7 @@ def evalSymbReg(individual, points):
     func = toolbox.compile(expr=individual)
     # Evaluate the mean squared error between the expression
     # and the real function : x**4 + x**3 + x**2 + x
-    sqerrors = ((func(x[0], x[1]) - x[2]) ** 2 for x in points)
+    sqerrors = (func(x[0], x[1], x[2]) ** 2 for x in points)
     return math.sqrt(math.fsum(sqerrors)),
 
 
