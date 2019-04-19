@@ -10,9 +10,12 @@ from deap import creator
 from deap import tools
 from deap import gp
 
+# import Generate_Triple
+#
+# ALL_POINTS = Generate_Triple.generate_list(20)
+
 import Input_Points
 
-# Define new functions
 ALL_POINTS = Input_Points.get_all_points()
 
 
@@ -25,18 +28,23 @@ def safe_div(left, right):
 
 
 def my_power(number, p):
-    return number ** p
+    try:
+        return number ** p
+    except ZeroDivisionError:
+        return 1
 
 
 def my_root(number, q):
-    return number ** (1 / q)
+    if numpy.real(number) < 0 and numpy.real(q) > 1:
+        return 100000000000
+    return my_power(number, safe_div(1, q))
 
 
-pset = gp.PrimitiveSet("MAIN", 3)
+pset = gp.PrimitiveSet("MAIN", 2)
 pset.addPrimitive(operator.add, 2)
-pset.addPrimitive(operator.sub, 2)
+# pset.addPrimitive(operator.sub, 2)
 pset.addPrimitive(operator.mul, 2)
-# pset.addPrimitive(math.sqrt, 1)
+pset.addPrimitive(math.sqrt, 1)
 # pset.addPrimitive(my_power, 2)
 # pset.addPrimitive(my_root, 2)
 # pset.addPrimitive(safeDiv, 2)
@@ -44,8 +52,8 @@ pset.addPrimitive(operator.mul, 2)
 # pset.addPrimitive(math.cos, 1)
 # pset.addPrimitive(math.sin, 1)
 # pset.addPrimitive(abs, 1)
-# pset.addEphemeralConstant("rand101", lambda: random.randint(1, 2))
-pset.renameArguments(ARG0='A', ARG1='B', ARG2='C')
+pset.addEphemeralConstant("rand101", lambda: random.randint(1, 2))
+pset.renameArguments(ARG0='A', ARG1='B')
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
@@ -62,7 +70,7 @@ def evalSymbReg(individual, points):
     func = toolbox.compile(expr=individual)
     # Evaluate the mean squared error between the expression
     # and the real function : x**4 + x**3 + x**2 + x
-    sqerrors = (func(x[0], x[1], x[2]) ** 2 for x in points)
+    sqerrors = ((func(x[0], x[1]) - x[2]) ** 2 for x in points)
     return math.sqrt(math.fsum(sqerrors)),
 
 
@@ -77,7 +85,7 @@ toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max
 
 
 def main():
-    random.seed(318)
+    random.seed(518)
 
     pop = toolbox.population(n=500)
     hof = tools.HallOfFame(1)
