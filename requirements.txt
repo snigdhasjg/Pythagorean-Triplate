@@ -1,3 +1,6 @@
+pygraphviz
+matplotlib
+networkx
 deap
 numpy
 -c conda-forge deap
