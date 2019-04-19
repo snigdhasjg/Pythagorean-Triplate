@@ -1,5 +1,4 @@
-# import Input_Points
-import Generate_Triple
+from TripletHelper import Generate_Triple, Input_Points
 
 # ALL_POINTS = Input_Points.get_all_points()
 
@@ -25,7 +24,9 @@ def safe_power(number, p):
 
 
 def safe_root(number, q):
-    power = safe_power(number, safe_div(1, q))
-    if isinstance(power, complex):
-        return MY_INFINITY
-    return power
+    if q is not None:
+        power = safe_power(number, safe_div(1, q))
+        if isinstance(power, complex):
+            return MY_INFINITY
+        return power
+    return MY_INFINITY

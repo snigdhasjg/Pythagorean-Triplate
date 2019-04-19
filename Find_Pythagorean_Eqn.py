@@ -10,22 +10,22 @@ from deap import creator
 from deap import tools
 from deap import gp
 
-from My_Helper import MY_INFINITY, ALL_POINTS, safe_root, safe_div, safe_power
+from TripletHelper.My_Helper import ALL_POINTS, safe_root, safe_div, safe_power
 
 
-pset = gp.PrimitiveSet("MAIN", 2)
-pset.addPrimitive(operator.add, 2)
-# pset.addPrimitive(operator.sub, 2)
-pset.addPrimitive(operator.mul, 2)
-pset.addPrimitive(math.sqrt, 1)
-# pset.addPrimitive(my_power, 2)
-# pset.addPrimitive(safe_root, 2)
-# pset.addPrimitive(safeDiv, 2)
-# pset.addPrimitive(operator.neg, 1)
-# pset.addPrimitive(math.cos, 1)
-# pset.addPrimitive(math.sin, 1)
-# pset.addPrimitive(abs, 1)
-pset.addEphemeralConstant("rand101", lambda: random.randint(1, 2))
+def return_int(obj):
+    return None
+
+
+__type__ = float
+pset = gp.PrimitiveSetTyped("MAIN", [__type__, __type__], __type__)
+pset.addPrimitive(operator.add, [__type__, __type__], __type__)
+pset.addPrimitive(operator.mul, [__type__, __type__], __type__)
+pset.addPrimitive(safe_root, [__type__, int], __type__)
+
+pset.addPrimitive(return_int, [__type__], int)
+
+pset.addTerminal(2, int)
 pset.renameArguments(ARG0='A', ARG1='B')
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
@@ -43,11 +43,8 @@ def evalSymbReg(individual, points):
     func = toolbox.compile(expr=individual)
     # Evaluate the mean squared error between the expression
     # and the real function : x**4 + x**3 + x**2 + x
-    try:
-        sqerrors = ((func(x[0], x[1]) - x[2]) ** 2 for x in points)
-        return math.sqrt(math.fsum(sqerrors)),
-    except OverflowError:
-        return MY_INFINITY,
+    sqerrors = ((func(x[0], x[1]) - x[2]) ** 2 for x in points)
+    return math.sqrt(math.fsum(sqerrors)),
 
 
 toolbox.register("evaluate", evalSymbReg, points=ALL_POINTS)
@@ -61,7 +58,7 @@ toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max
 
 
 def main():
-    random.seed(318)
+    random.seed(31)
 
     pop = toolbox.population(n=500)
     hof = tools.HallOfFame(1)
@@ -76,8 +73,6 @@ def main():
 
     pop, log = algorithms.eaSimple(pop, toolbox, 0.9, 0.2, 50, stats=mstats, halloffame=hof, verbose=True)
 
-    # print('Best individual : ', hof[0], hof[0].fitness)
-    # print log
     return pop, log, hof
 
 

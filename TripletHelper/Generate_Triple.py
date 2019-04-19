@@ -1,5 +1,5 @@
 import math
-from random import randint, seed
+from random import randint
 
 
 def get_c(a, b):
@@ -16,7 +16,6 @@ def generate_triple(limit):
 
 
 def generate_list(size):
-    seed(201)
     triple_list = []
     for _ in range(size):
         triple_list.append(generate_triple(10))
