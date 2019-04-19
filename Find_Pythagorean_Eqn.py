@@ -10,37 +10,7 @@ from deap import creator
 from deap import tools
 from deap import gp
 
-# import Generate_Triple
-#
-# ALL_POINTS = Generate_Triple.generate_list(20)
-
-import Input_Points
-
-ALL_POINTS = Input_Points.get_all_points()
-
-
-# Define new functions for division
-def safe_div(left, right):
-    try:
-        return left / right
-    except ZeroDivisionError:
-        return 1
-
-
-def my_power(number, p):
-    try:
-        return number ** p
-    except ZeroDivisionError:
-        return 1
-    except OverflowError:
-        return 1
-
-
-def my_root(number, q):
-    power = my_power(number, safe_div(1, q))
-    if isinstance(power, complex):
-        return 1000000
-    return power
+from My_Helper import MY_INFINITY, ALL_POINTS, safe_root, safe_div, safe_power
 
 
 pset = gp.PrimitiveSet("MAIN", 2)
@@ -49,13 +19,13 @@ pset.addPrimitive(operator.add, 2)
 pset.addPrimitive(operator.mul, 2)
 pset.addPrimitive(math.sqrt, 1)
 # pset.addPrimitive(my_power, 2)
-# pset.addPrimitive(my_root, 2)
+# pset.addPrimitive(safe_root, 2)
 # pset.addPrimitive(safeDiv, 2)
 # pset.addPrimitive(operator.neg, 1)
 # pset.addPrimitive(math.cos, 1)
 # pset.addPrimitive(math.sin, 1)
 # pset.addPrimitive(abs, 1)
-# pset.addEphemeralConstant("rand101", lambda: random.randint(1, 2))
+pset.addEphemeralConstant("rand101", lambda: random.randint(1, 2))
 pset.renameArguments(ARG0='A', ARG1='B')
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
@@ -77,7 +47,7 @@ def evalSymbReg(individual, points):
         sqerrors = ((func(x[0], x[1]) - x[2]) ** 2 for x in points)
         return math.sqrt(math.fsum(sqerrors)),
     except OverflowError:
-        return 100000000,
+        return MY_INFINITY,
 
 
 toolbox.register("evaluate", evalSymbReg, points=ALL_POINTS)
@@ -86,12 +56,12 @@ toolbox.register("mate", gp.cxOnePoint)
 toolbox.register("expr_mut", gp.genFull, min_=0, max_=6)
 toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
 
-toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=17))
-toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=17))
+toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=3))
+toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=3))
 
 
 def main():
-    random.seed(518)
+    random.seed(318)
 
     pop = toolbox.population(n=500)
     hof = tools.HallOfFame(1)

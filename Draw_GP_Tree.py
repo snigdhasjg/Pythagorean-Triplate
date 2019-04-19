@@ -1,7 +1,4 @@
 from deap import gp
-import matplotlib.pyplot as plt
-import networkx as nx
-import pygraphviz as pgv
 
 import Find_Pythagorean_Eqn as fpe
 
@@ -10,11 +7,13 @@ def get_graph_data():
     pop, log, hof = fpe.main()
     expr = hof[0]
     nodes, edges, labels = gp.graph(expr)
+    print('Best fitness: {}'.format(expr.fitness))
     return nodes, edges, labels
 
 
 # ### Graphviz Section ###
 def draw_graph_using_pygraphviz(nodes, edges, labels):
+    import pygraphviz as pgv
     g = pgv.AGraph()
     g.add_nodes_from(nodes)
     g.add_edges_from(edges)
@@ -28,6 +27,8 @@ def draw_graph_using_pygraphviz(nodes, edges, labels):
 
 
 def draw_graph_using_matplotlib(nodes, edges, labels):
+    import matplotlib.pyplot as plt
+    import networkx as nx
     g = nx.Graph()
     g.add_nodes_from(nodes)
     g.add_edges_from(edges)
