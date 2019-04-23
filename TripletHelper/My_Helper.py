@@ -2,9 +2,9 @@ from TripletHelper import Generate_Triple, Input_Points
 
 # ALL_POINTS = Input_Points.get_all_points()
 
-ALL_POINTS = Generate_Triple.generate_list(20)
+ALL_POINTS = Generate_Triple.generate_list(40)
 
-MY_INFINITY = 1000000
+MY_INFINITY = 10000000000
 
 
 def safe_div(left, right):
@@ -14,19 +14,15 @@ def safe_div(left, right):
         return 1
 
 
-def safe_power(number, p):
-    try:
-        return number ** p
-    except ZeroDivisionError:
-        return 1
-    except OverflowError:
-        return MY_INFINITY
-
-
-def safe_root(number, q):
-    if q is not None:
-        power = safe_power(number, safe_div(1, q))
-        if isinstance(power, complex):
+def safe_power(number, p, q):
+    if p is not None and q is not None:
+        try:
+            power = number ** safe_div(p, q)
+            if isinstance(power, complex):
+                return MY_INFINITY
+            return power
+        except ZeroDivisionError:
+            return 1
+        except OverflowError:
             return MY_INFINITY
-        return power
     return MY_INFINITY

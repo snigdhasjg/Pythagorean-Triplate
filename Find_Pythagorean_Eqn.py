@@ -1,6 +1,6 @@
 import operator
 import math
-import random
+from random import randint
 
 import numpy
 
@@ -10,7 +10,7 @@ from deap import creator
 from deap import tools
 from deap import gp
 
-from TripletHelper.My_Helper import ALL_POINTS, safe_root, safe_div, safe_power
+from TripletHelper.My_Helper import ALL_POINTS, safe_div, safe_power
 
 
 def return_int(obj):
@@ -19,20 +19,24 @@ def return_int(obj):
 
 __type__ = float
 pset = gp.PrimitiveSetTyped("MAIN", [__type__, __type__], __type__)
+
 pset.addPrimitive(operator.add, [__type__, __type__], __type__)
+pset.addPrimitive(operator.sub, [__type__, __type__], __type__)
 pset.addPrimitive(operator.mul, [__type__, __type__], __type__)
-pset.addPrimitive(safe_root, [__type__, int], __type__)
+# pset.addPrimitive(safe_div, [__type__, __type__], __type__)
 
-pset.addPrimitive(return_int, [__type__], int)
+pset.addPrimitive(safe_power, [__type__, int, int], __type__, name='power')
 
-pset.addTerminal(2, int)
+pset.addPrimitive(return_int, [__type__], int, name='dummy')
+
+pset.addEphemeralConstant('rand1-2', lambda: randint(1, 2), int)
 pset.renameArguments(ARG0='A', ARG1='B')
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
 
 toolbox = base.Toolbox()
-toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=1, max_=3)
+toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=1, max_=6)
 toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.expr)
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 toolbox.register("compile", gp.compile, pset=pset)
@@ -58,7 +62,6 @@ toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max
 
 
 def main():
-    random.seed(31)
 
     pop = toolbox.population(n=500)
     hof = tools.HallOfFame(1)
@@ -71,7 +74,7 @@ def main():
     mstats.register("min\t", numpy.min)
     mstats.register("max\t", numpy.max)
 
-    pop, log = algorithms.eaSimple(pop, toolbox, 0.9, 0.2, 50, stats=mstats, halloffame=hof, verbose=True)
+    pop, log = algorithms.eaSimple(pop, toolbox, 0.9, 0.3, 50, stats=mstats, halloffame=hof, verbose=True)
 
     return pop, log, hof
 
