@@ -14,19 +14,22 @@ def draw_graph_using_pygraphviz(nodes, edges, labels, tree_png="tree"):
         n = g.get_node(i)
         n.attr["label"] = labels[i]
 
-    g.draw('output/{}.png'.format(tree_png))
+    g.draw('output_(1-3)/{}.png'.format(tree_png))
 
 
-def draw():
-    pop, log, hof = fpe.main()
+def draw(iteration_no=-1):
+    pop, log, hof = fpe.main(False)
     expr = hof[0]
     nodes, edges, labels = gp.graph(expr)
     print('Best individual : ', expr, expr.fitness)
 
-    tree_name = '{}'.format(expr.fitness).replace('(', '').replace(')', '').replace(',', '')
+    tree_name = '{}-{}'.format(expr.fitness, iteration_no)\
+        .replace('(', '')\
+        .replace(')', '')\
+        .replace(',', '')
     draw_graph_using_pygraphviz(nodes, edges, labels, tree_name)
 
 
 if __name__ == '__main__':
-    for _ in range(100):
-        draw()
+    for i in range(100):
+        draw(i)
