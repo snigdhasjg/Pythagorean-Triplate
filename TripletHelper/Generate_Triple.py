@@ -8,8 +8,8 @@ def get_c(a, b):
 
 
 def generate_triple(limit):
-    number1 = random.randint(2, limit)
-    number2 = random.randint(2, limit)
+    number1 = random.randint(2, limit) + round(random.random(), 4)
+    number2 = random.randint(2, limit) + round(random.random(), 4)
     number3 = get_c(number1, number2)
 
     return [number1, number2, number3]

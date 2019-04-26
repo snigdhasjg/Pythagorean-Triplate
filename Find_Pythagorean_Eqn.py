@@ -86,7 +86,7 @@ def main(verbose=True):
     pop = toolbox.population(n=500)
     hof = tools.HallOfFame(1)
 
-    pop, log = algorithms.eaSimple(pop, toolbox, 0.9, 0.3, 50, stats=get_numpy_stats(), halloffame=hof, verbose=verbose)
+    pop, log = algorithms.eaSimple(pop, toolbox, 0.9, 0.3, 200, stats=get_numpy_stats(), halloffame=hof, verbose=verbose)
 
     return pop, log, hof
 
