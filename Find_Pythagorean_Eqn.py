@@ -13,7 +13,6 @@ from TripletHelper.My_Helper import ALL_POINTS, safe_power
 
 from time import time
 
-
 __type__ = float
 
 
@@ -43,7 +42,7 @@ def create_toolbox(pset: gp.PrimitiveSetTyped):
     creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
 
     toolbox = base.Toolbox()
-    toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=1, max_=3)
+    toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=1, max_=5)
     toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.expr)
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("compile", gp.compile, pset=pset)
@@ -57,13 +56,13 @@ def create_toolbox(pset: gp.PrimitiveSetTyped):
         return math.sqrt(math.fsum(sqerrors)),
 
     toolbox.register("evaluate", eval_symb_reg, points=ALL_POINTS)
-    toolbox.register("select", tools.selTournament, tournsize=3)
+    toolbox.register("select", tools.selTournament, tournsize=5)
     toolbox.register("mate", gp.cxOnePoint)
-    toolbox.register("expr_mut", gp.genFull, min_=0, max_=3)
+    toolbox.register("expr_mut", gp.genFull, min_=0, max_=5)
     toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
 
-    toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=3))
-    toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=3))
+    toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=7))
+    toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=7))
 
     return toolbox
 
@@ -80,13 +79,87 @@ def get_numpy_stats():
     return mstats
 
 
+def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame=None, verbose=__debug__):
+    logbook = tools.Logbook()
+    logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
+
+    # Evaluate the individuals with an invalid fitness
+    invalid_ind = [ind for ind in population if not ind.fitness.valid]
+    fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
+    for ind, fit in zip(invalid_ind, fitnesses):
+        ind.fitness.values = fit
+
+    if halloffame is not None:
+        halloffame.update(population)
+
+    record = stats.compile(population) if stats else {}
+    logbook.record(gen=0, nevals=len(invalid_ind), **record)
+    if verbose:
+        print(logbook.stream)
+
+    # Begin the generational process
+    gen = 0
+    last_few_pop_to_consider = 100
+    starting_condition = last_few_pop_to_consider
+    try:
+        while gen < ngen + 1:
+            # Select the next generation individuals
+            offspring = toolbox.select(population, len(population))
+
+            # Vary the pool of individuals
+            offspring = algorithms.varAnd(offspring, toolbox, cxpb, mutpb)
+
+            # Evaluate the individuals with an invalid fitness
+            invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+            fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
+            for ind, fit in zip(invalid_ind, fitnesses):
+                ind.fitness.values = fit
+
+            # Update the hall of fame with the generated individuals
+            if halloffame is not None:
+                halloffame.update(offspring)
+
+            # Replace the current population by the offspring
+            population[:] = offspring
+
+            # Append the current generation statistics to the logbook
+            record = stats.compile(population) if stats else {}
+            logbook.record(gen=gen, nevals=len(invalid_ind), **record)
+            if verbose:
+                print(logbook.stream)
+
+            gen += 1
+
+            # stopping criteria
+            min_fitness = record['fitness']['min\t']
+            max_fitness = record['fitness']['max\t']
+            if min_fitness < 1:
+                print('Reached desired fitness')
+                break
+
+            if len(logbook) > starting_condition:
+                min_stats = logbook.chapters['fitness'].select('min\t')[-last_few_pop_to_consider:]
+                if abs(sum(min_stats) / len(min_stats) - min_stats[0]) < 0.1:
+                    mutpb += 0.1
+                    starting_condition += gen + last_few_pop_to_consider
+                    if mutpb > 0.9:
+                        print('mutation rate exceced')
+                        break
+
+    except KeyboardInterrupt:
+        print('Keyboard Interrupted')
+    finally:
+        return population, logbook
+
+
 def main(verbose=True):
     pset = create_primitive_set()
     toolbox = create_toolbox(pset)
     pop = toolbox.population(n=500)
     hof = tools.HallOfFame(1)
 
-    pop, log = algorithms.eaSimple(pop, toolbox, 0.9, 0.3, 200, stats=get_numpy_stats(), halloffame=hof, verbose=verbose)
+    pop, log = my_eaSimple(pop, toolbox, 0.9, 0.2, 2000, stats=get_numpy_stats(), halloffame=hof,
+                           verbose=verbose)
 
     return pop, log, hof
 
