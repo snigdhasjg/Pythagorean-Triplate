@@ -31,7 +31,7 @@ def create_primitive_set():
 
     pset.addPrimitive(return_int, [__type__], int, name='dummy')
 
-    pset.addEphemeralConstant('rand1-2 %f' % time(), lambda: randint(1, 3), int)
+    pset.addEphemeralConstant('rand1-2 %f' % time(), lambda: randint(1, 4), int)
     pset.renameArguments(ARG0='A', ARG1='B')
 
     return pset
@@ -42,7 +42,7 @@ def create_toolbox(pset: gp.PrimitiveSetTyped):
     creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
 
     toolbox = base.Toolbox()
-    toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=1, max_=5)
+    toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=1, max_=4)
     toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.expr)
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("compile", gp.compile, pset=pset)
@@ -61,8 +61,8 @@ def create_toolbox(pset: gp.PrimitiveSetTyped):
     toolbox.register("expr_mut", gp.genFull, min_=0, max_=5)
     toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
 
-    toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=7))
-    toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=7))
+    toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=4))
+    toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=4))
 
     return toolbox
 
@@ -99,9 +99,11 @@ def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame=N
 
     # Begin the generational process
     gen = 0
-    last_few_pop_to_consider = 100
+    last_few_pop_to_consider = 50
     starting_condition = last_few_pop_to_consider
     try:
+        is_last_few_fitness_same = lambda stats_array: abs(
+            numpy.mean(stats_array) - stats_array[0]) < 0.1
         while gen < ngen + 1:
             # Select the next generation individuals
             offspring = toolbox.select(population, len(population))
@@ -133,21 +135,25 @@ def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame=N
             # stopping criteria
             min_fitness = record['fitness']['min\t']
             max_fitness = record['fitness']['max\t']
-            if min_fitness < 1:
+
+            if min_fitness < 0.1:
                 print('Reached desired fitness')
                 break
 
-            if len(logbook) > starting_condition:
+            if gen > starting_condition:
                 min_stats = logbook.chapters['fitness'].select('min\t')[-last_few_pop_to_consider:]
-                if abs(sum(min_stats) / len(min_stats) - min_stats[0]) < 0.1:
-                    mutpb += 0.1
-                    starting_condition += gen + last_few_pop_to_consider
-                    if mutpb > 0.9:
-                        print('mutation rate exceced')
-                        break
+                if is_last_few_fitness_same(min_stats):
+                    # if mutpb > 0.3:
+                    print('mutation rate exceeded\nDefining new population')
+                    population = toolbox.population(n=500)
+                    # mutpb = 0.1
+                    # else:
+                    #     mutpb += 0.05
+                    starting_condition = gen + last_few_pop_to_consider
+                    #     print('mutation {}'.format(mutpb))
 
     except KeyboardInterrupt:
-        print('Keyboard Interrupted')
+        print(' Keyboard Interrupted')
     finally:
         return population, logbook
 
@@ -158,7 +164,7 @@ def main(verbose=True):
     pop = toolbox.population(n=500)
     hof = tools.HallOfFame(1)
 
-    pop, log = my_eaSimple(pop, toolbox, 0.9, 0.2, 2000, stats=get_numpy_stats(), halloffame=hof,
+    pop, log = my_eaSimple(pop, toolbox, 0.9, 0.2, 10000, stats=get_numpy_stats(), halloffame=hof,
                            verbose=verbose)
 
     return pop, log, hof

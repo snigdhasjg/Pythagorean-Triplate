@@ -16,6 +16,8 @@ def safe_div(left, right):
 
 def safe_power(number, p, q):
     if p is not None and q is not None:
+        if p is q:
+            return MY_INFINITY
         try:
             power = number ** safe_div(p, q)
             if isinstance(power, complex):
