@@ -143,14 +143,9 @@ def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame=N
             if gen > starting_condition:
                 min_stats = logbook.chapters['fitness'].select('min\t')[-last_few_pop_to_consider:]
                 if is_last_few_fitness_same(min_stats):
-                    # if mutpb > 0.3:
-                    print('mutation rate exceeded\nDefining new population')
+                    print('Defining new population')
                     population = toolbox.population(n=500)
-                    # mutpb = 0.1
-                    # else:
-                    #     mutpb += 0.05
                     starting_condition = gen + last_few_pop_to_consider
-                    #     print('mutation {}'.format(mutpb))
 
     except KeyboardInterrupt:
         print(' Keyboard Interrupted')

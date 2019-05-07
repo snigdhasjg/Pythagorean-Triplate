@@ -1,6 +1,8 @@
 import math
 import random
 
+RANGE = 50
+
 
 def get_c(a, b):
     c_value = math.sqrt(a ** 2 + b ** 2)
@@ -18,7 +20,7 @@ def generate_triple(limit):
 def generate_list(size):
     triple_list = []
     for _ in range(size):
-        triple_list.append(generate_triple(100))
+        triple_list.append(generate_triple(RANGE))
 
     return triple_list
 
