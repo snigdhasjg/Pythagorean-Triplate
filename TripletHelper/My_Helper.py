@@ -1,8 +1,9 @@
 from TripletHelper import Generate_Triple, Input_Points
 
 # ALL_POINTS = Input_Points.get_all_points()
+LIST_SIZE = 200
 
-ALL_POINTS = Generate_Triple.generate_list(200)
+ALL_POINTS = Generate_Triple.generate_list(LIST_SIZE)
 
 MY_INFINITY = 10000000000
 
