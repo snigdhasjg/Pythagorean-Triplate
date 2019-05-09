@@ -162,9 +162,9 @@ def main(verbose=True):
     pop, log = my_eaSimple(pop, toolbox, 0.9, 0.2, 10000, stats=get_numpy_stats(), halloffame=hof,
                            verbose=verbose)
 
+    print('Best individual : ', hof[0], hof[0].fitness)
     return pop, log, hof
 
 
 if __name__ == "__main__":
     pop, log, hof = main()
-    print('Best individual : ', hof[0], hof[0].fitness)

@@ -1,5 +1,5 @@
 from deap import gp
-
+from time import time
 import Find_Pythagorean_Eqn as fpe
 
 
@@ -29,6 +29,13 @@ def draw(hof=None, iteration_no=-1):
         .replace('(', '') \
         .replace(')', '') \
         .replace(',', '')
+    file_previously_exists = True
+    try:
+        open(tree_name, 'r')
+    except FileNotFoundError:
+        file_previously_exists = False
+    if file_previously_exists:
+        tree_name += '-{}'.format(time())
     draw_graph_using_pygraphviz(nodes, edges, labels, tree_name)
 
 
