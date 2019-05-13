@@ -9,7 +9,7 @@ from deap import creator
 from deap import gp
 from deap import tools
 
-from TripletHelper.My_Helper import ALL_POINTS, safe_power
+from TripletHelper.My_Helper import ALL_POINTS, safe_power, play_song
 
 from time import time
 
@@ -31,7 +31,7 @@ def create_primitive_set():
 
     pset.addPrimitive(return_int, [__type__], int, name='dummy')
 
-    pset.addEphemeralConstant('rand1-2 %f' % time(), lambda: randint(1, 4), int)
+    pset.addEphemeralConstant('rand1-2 %f' % time(), lambda: randint(1, 5), int)
     pset.renameArguments(ARG0='A', ARG1='B')
 
     return pset
@@ -138,6 +138,7 @@ def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame=N
 
             if min_fitness < 0.1:
                 print('Reached desired fitness')
+                play_song()
                 break
 
             if gen > starting_condition:
