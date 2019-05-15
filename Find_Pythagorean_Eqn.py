@@ -1,6 +1,7 @@
 import math
 import operator
 from random import randint
+from time import time
 
 import numpy
 from deap import algorithms
@@ -9,9 +10,7 @@ from deap import creator
 from deap import gp
 from deap import tools
 
-from TripletHelper.My_Helper import ALL_POINTS, safe_power, play_song
-
-from time import time
+from TripletHelper.My_Helper import ALL_POINTS, safe_power
 
 __type__ = float
 
@@ -31,7 +30,7 @@ def create_primitive_set():
 
     pset.addPrimitive(return_int, [__type__], int, name='dummy')
 
-    pset.addEphemeralConstant('rand1-2 %f' % time(), lambda: randint(1, 5), int)
+    pset.addEphemeralConstant('rand1-2 %f' % time(), lambda: randint(1, 10), int)
     pset.renameArguments(ARG0='A', ARG1='B')
 
     return pset
@@ -79,7 +78,8 @@ def get_numpy_stats():
     return mstats
 
 
-def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame=None, verbose=__debug__):
+def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame: tools.HallOfFame = None,
+                verbose=True):
     logbook = tools.Logbook()
     logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
 
@@ -93,17 +93,16 @@ def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame=N
         halloffame.update(population)
 
     record = stats.compile(population) if stats else {}
-    logbook.record(gen=0, nevals=len(invalid_ind), **record)
+    logbook.record(gen=-1, nevals=len(invalid_ind), **record)
     if verbose:
         print(logbook.stream)
 
     # Begin the generational process
-    gen = 0
-    last_few_pop_to_consider = 50
-    starting_condition = last_few_pop_to_consider
     try:
-        is_last_few_fitness_same = lambda stats_array: abs(
-            numpy.mean(stats_array) - stats_array[0]) < 0.1
+        gen = 0
+        # last_few_pop_to_consider = 50
+        # starting_condition = last_few_pop_to_consider
+        # is_last_few_fitness_same = lambda stats_array: abs(numpy.mean(stats_array) - stats_array[0]) < 0.1
         while gen < ngen + 1:
             # Select the next generation individuals
             offspring = toolbox.select(population, len(population))
@@ -134,19 +133,22 @@ def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame=N
 
             # stopping criteria
             min_fitness = record['fitness']['min\t']
-            max_fitness = record['fitness']['max\t']
+            # max_fitness = record['fitness']['max\t']
 
             if min_fitness < 0.1:
                 print('Reached desired fitness')
-                play_song()
                 break
 
-            if gen > starting_condition:
-                min_stats = logbook.chapters['fitness'].select('min\t')[-last_few_pop_to_consider:]
-                if is_last_few_fitness_same(min_stats):
-                    print('Defining new population')
-                    population = toolbox.population(n=500)
-                    starting_condition = gen + last_few_pop_to_consider
+            # if gen > starting_condition:
+            #     min_stats = logbook.chapters['fitness'].select('min\t')[-last_few_pop_to_consider:]
+            #     if is_last_few_fitness_same(min_stats):
+            #         print('Defining new population')
+            #         population = toolbox.population(n=500)
+            #         starting_condition = gen + last_few_pop_to_consider
+
+            if gen % 20 == 0:
+                print('Defining new population after 20 gen')
+                population = toolbox.population(n=500)
 
     except KeyboardInterrupt:
         print(' Keyboard Interrupted')
@@ -169,3 +171,4 @@ def main(verbose=True):
 
 if __name__ == "__main__":
     pop, log, hof = main()
+    # make_picture(pop)

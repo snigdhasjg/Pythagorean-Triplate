@@ -1,6 +1,4 @@
-from TripletHelper import Generate_Triple, Input_Points
-from pygame import mixer
-import time
+from TripletHelper import Generate_Triple
 
 # ALL_POINTS = Input_Points.get_all_points()
 LIST_SIZE = 200
@@ -33,10 +31,10 @@ def safe_power(number, p, q):
     return MY_INFINITY
 
 
-def play_song():
-    mixer.init()
-    mixer.music.load("TripletHelper/song.mp3")
-    mixer.music.play()
-    time.sleep(5)
-    mixer.music.fadeout(5000)
-    time.sleep(5)
+# def play_song():
+#     mixer.init()
+#     mixer.music.load("TripletHelper/song.mp3")
+#     mixer.music.play()
+#     time.sleep(5)
+#     mixer.music.fadeout(5000)
+#     time.sleep(5)
