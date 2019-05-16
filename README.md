@@ -8,7 +8,7 @@ conda update anaconda
 ```
 #### Step 3: Install dependencies
 ```
-pip install requirments.txt
+pip install requirements.txt
 ```
 #### Step 4: Clone Pythagorean-Triplate and start with evolving
 ```
