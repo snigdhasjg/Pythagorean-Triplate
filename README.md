@@ -17,4 +17,4 @@ cd Pythagorean-Triplate
 python Find_Pythagorean_Eqn.py
 ```
 ### Output may look like this
-<img src='https://github.com/snigdhasjg/Pythagorean-Triplate/blob/master/Image/fig.png' />
+<img height='250' src='https://github.com/snigdhasjg/Pythagorean-Triplate/blob/master/Image/fig.png' />
