@@ -112,7 +112,12 @@ def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame: 
 
             # Evaluate the individuals with an invalid fitness
             invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
-            fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
+            try:
+                fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
+            except OverflowError:
+                print(OverflowError, '\nResetting population')
+                population = toolbox.population(n=500)
+                continue
             for ind, fit in zip(invalid_ind, fitnesses):
                 ind.fitness.values = fit
 
