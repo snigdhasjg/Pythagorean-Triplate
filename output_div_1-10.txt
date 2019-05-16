@@ -1,0 +1,5 @@
+add(B, safe_div(mul(mul(A, A), power(B, 1, 7)), add(add(B, A), add(B, B))))	(8.479620144551204,)
+OverflowError
+power(add(mul(mul(A, B), safe_div(A, B)), power(B, 10, 5)), 5, 10)	(0.0396122499028562,)
+power(add(mul(A, A), mul(B, B)), 4, 8)	(0.039612249902854606,)
+power(add(add(mul(A, A), sub(B, B)), mul(B, B)), 5, 10)	(0.039612249902854606,)

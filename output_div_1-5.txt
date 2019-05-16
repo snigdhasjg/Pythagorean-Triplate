@@ -1,0 +1,7 @@
+power(add(mul(B, B), mul(A, A)), 1, 2)	(0.039612249902854606,)
+power(add(mul(A, A), mul(B, B)), 1, 2)	(0.039612249902854606,)
+power(add(mul(A, A), power(B, 2, 1)), 1, 2)	(0.039612249902854606,)
+power(add(add(sub(A, A), mul(B, B)), mul(A, A)), 1, 2)	(0.039612249902854606,)
+power(add(mul(A, A), mul(B, B)), 1, 2)	(0.039612249902854606,)
+power(add(sub(power(B, 2, 1), safe_div(A, A)), add(safe_div(A, A), mul(A, A))), 1, 2)	(0.039612249902854606,)
+power(add(sub(mul(B, B), sub(B, A)), sub(mul(A, A), sub(A, B))), 2, 4)	(0.0396122499028574,)
