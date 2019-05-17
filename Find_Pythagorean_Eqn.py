@@ -10,7 +10,7 @@ from deap import creator
 from deap import gp
 from deap import tools
 
-from TripletHelper.My_Helper import ALL_POINTS, safe_power, safe_div
+from TripletHelper.My_Helper import ALL_POINTS, safe_power
 
 __type__ = float
 
@@ -21,7 +21,7 @@ def create_primitive_set():
     pset.addPrimitive(operator.add, [__type__, __type__], __type__)
     pset.addPrimitive(operator.sub, [__type__, __type__], __type__)
     pset.addPrimitive(operator.mul, [__type__, __type__], __type__)
-    pset.addPrimitive(safe_div, [__type__, __type__], __type__)
+    # pset.addPrimitive(safe_div, [__type__, __type__], __type__)
 
     pset.addPrimitive(safe_power, [__type__, int, int], __type__, name='power')
 
@@ -100,15 +100,6 @@ def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame: 
     # Begin the generational process
     try:
         gen = 0
-
-        def get_population(num):
-            popu = toolbox.population(n=num)
-            invalid_indi = [ind for ind in popu if not ind.fitness.valid]
-            fits = toolbox.map(toolbox.evaluate, invalid_indi)
-            for ind, fit in zip(invalid_indi, fits):
-                ind.fitness.values = fit
-            return popu
-
         # last_few_pop_to_consider = 50
         # starting_condition = last_few_pop_to_consider
         # is_last_few_fitness_same = lambda stats_array: abs(numpy.mean(stats_array) - stats_array[0]) < 0.1
@@ -125,7 +116,7 @@ def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame: 
                 fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
             except OverflowError:
                 print(OverflowError, '\nResetting population')
-                population = get_population(num=500)
+                population = toolbox.population(n=500)
                 continue
             for ind, fit in zip(invalid_ind, fitnesses):
                 ind.fitness.values = fit
@@ -162,7 +153,7 @@ def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame: 
 
             if gen % 20 == 0:
                 print('Defining new population after 20 gen')
-                population = get_population(num=500)
+                population = toolbox.population(n=500)
 
     except KeyboardInterrupt:
         print(' Keyboard Interrupted')
