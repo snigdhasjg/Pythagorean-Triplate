@@ -1,5 +1,13 @@
 add(B, safe_div(mul(mul(A, A), power(B, 1, 7)), add(add(B, A), add(B, B))))	(8.479620144551204,)
-OverflowError
 power(add(mul(mul(A, B), safe_div(A, B)), power(B, 10, 5)), 5, 10)	(0.0396122499028562,)
 power(add(mul(A, A), mul(B, B)), 4, 8)	(0.039612249902854606,)
 power(add(add(mul(A, A), sub(B, B)), mul(B, B)), 5, 10)	(0.039612249902854606,)
+power(add(mul(B, B), mul(A, A)), 2, 4) (0.04049956043045672,)
+add(B, safe_div(mul(A, A), add(A, power(B, 10, 9)))) (8.849251608340895,)
+add(B, safe_div(A, power(B, 1, 6))) (57.615157234512516,)
+add(safe_div(B, power(power(A, 1, 9), 2, 10)), safe_div(A, add(safe_div(A, A), safe_div(B, A)))) (8.232733641320664,)
+power(add(power(B, 2, 1), mul(A, A)), 5, 10) (0.041309673904471066,)
+power(add(mul(B, B), mul(A, A)), 3, 6) (0.04164478257542844,)
+add(safe_div(add(mul(A, A), A), add(power(B, 9, 8), A)), B) (9.523506858189037,)
+power(add(mul(B, B), mul(A, A)), 4, 8) (0.0394131889560895,)
+add(safe_div(add(A, mul(A, A)), add(A, power(B, 10, 9))), B) 6.870515623400711

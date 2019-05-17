@@ -10,7 +10,8 @@ from deap import creator
 from deap import gp
 from deap import tools
 
-from TripletHelper.My_Helper import ALL_POINTS, safe_power
+from TripletHelper.My_Helper import ALL_POINTS, safe_power, safe_div
+from TripletHelper.Saving import save_halloffame
 
 __type__ = float
 
@@ -21,7 +22,7 @@ def create_primitive_set():
     pset.addPrimitive(operator.add, [__type__, __type__], __type__)
     pset.addPrimitive(operator.sub, [__type__, __type__], __type__)
     pset.addPrimitive(operator.mul, [__type__, __type__], __type__)
-    # pset.addPrimitive(safe_div, [__type__, __type__], __type__)
+    pset.addPrimitive(safe_div, [__type__, __type__], __type__)
 
     pset.addPrimitive(safe_power, [__type__, int, int], __type__, name='power')
 
@@ -30,7 +31,7 @@ def create_primitive_set():
 
     pset.addPrimitive(return_int, [__type__], int, name='dummy')
 
-    pset.addEphemeralConstant('rand1-2 %f' % time(), lambda: randint(1, 10), int)
+    pset.addEphemeralConstant('rand1-10 %f' % time(), lambda: randint(1, 10), int)
     pset.renameArguments(ARG0='A', ARG1='B')
 
     return pset
@@ -55,7 +56,7 @@ def create_toolbox(pset: gp.PrimitiveSetTyped):
         return math.sqrt(math.fsum(sqerrors)),
 
     toolbox.register("evaluate", eval_symb_reg, points=ALL_POINTS)
-    toolbox.register("select", tools.selTournament, tournsize=5)
+    toolbox.register("select", tools.selTournament, tournsize=4)
     toolbox.register("mate", gp.cxOnePoint)
     toolbox.register("expr_mut", gp.genFull, min_=0, max_=5)
     toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
@@ -78,6 +79,9 @@ def get_numpy_stats():
     return mstats
 
 
+overflow_error = []
+
+
 def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame: tools.HallOfFame = None,
                 verbose=True):
     logbook = tools.Logbook()
@@ -93,13 +97,13 @@ def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame: 
         halloffame.update(population)
 
     record = stats.compile(population) if stats else {}
-    logbook.record(gen=-1, nevals=len(invalid_ind), **record)
+    logbook.record(gen=0, nevals=len(invalid_ind), **record)
     if verbose:
         print(logbook.stream)
 
     # Begin the generational process
     try:
-        gen = 0
+        gen = 1
         # last_few_pop_to_consider = 50
         # starting_condition = last_few_pop_to_consider
         # is_last_few_fitness_same = lambda stats_array: abs(numpy.mean(stats_array) - stats_array[0]) < 0.1
@@ -116,7 +120,7 @@ def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame: 
                 fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
             except OverflowError:
                 print(OverflowError, '\nResetting population')
-                population = toolbox.population(n=500)
+                overflow_error.append(gen)
                 continue
             for ind, fit in zip(invalid_ind, fitnesses):
                 ind.fitness.values = fit
@@ -133,8 +137,6 @@ def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame: 
             logbook.record(gen=gen, nevals=len(invalid_ind), **record)
             if verbose:
                 print(logbook.stream)
-
-            gen += 1
 
             # stopping criteria
             min_fitness = record['fitness']['min\t']
@@ -155,6 +157,8 @@ def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame: 
                 print('Defining new population after 20 gen')
                 population = toolbox.population(n=500)
 
+            gen += 1
+
     except KeyboardInterrupt:
         print(' Keyboard Interrupted')
     finally:
@@ -167,7 +171,7 @@ def main(verbose=True):
     pop = toolbox.population(n=500)
     hof = tools.HallOfFame(1)
 
-    pop, log = my_eaSimple(pop, toolbox, 0.9, 0.2, 10000, stats=get_numpy_stats(), halloffame=hof,
+    pop, log = my_eaSimple(pop, toolbox, 0.8, 0.2, 10000, stats=get_numpy_stats(), halloffame=hof,
                            verbose=verbose)
 
     print('Best individual : ', hof[0], hof[0].fitness)
@@ -176,4 +180,4 @@ def main(verbose=True):
 
 if __name__ == "__main__":
     pop, log, hof = main()
-    # make_picture(pop)
+    save_halloffame(hof)
