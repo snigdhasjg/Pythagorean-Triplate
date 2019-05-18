@@ -1,0 +1,14 @@
+power(add(sub(mul(A, A), sub(A, A)), mul(B, B)), 1, 2) 0.0028161855746611343
+	add(mul(sub(B, power(A, 3, 7)), safe_div(B, add(A, B))), A) 0.7751651829903505
+power(add(mul(B, B), mul(A, A)), 4, 8) 0.0029683561390349065
+power(add(mul(B, B), mul(A, A)), 2, 4) 0.002963429053717554
+	add(safe_div(sub(mul(B, B), sub(A, B)), add(B, power(A, 10, 9))), A) 0.5267348040722301
+power(add(mul(A, A), mul(B, B)), 2, 4) 0.002945367690840132
+power(add(mul(A, A), mul(B, B)), 2, 4) 0.0028072253710935443
+power(add(mul(A, A), mul(B, B)), 5, 10) 0.003022526424175901
+power(add(mul(A, A), mul(B, B)), 4, 8) 0.0028147586389662108
+power(add(power(A, 8, 4), mul(B, B)), 2, 4) 0.002900272476457037
+power(add(mul(A, A), power(B, 8, 4)), 1, 2) 0.0029908289674849243
+power(add(power(A, 4, 2), mul(B, B)), 5, 10) 0.0029368952494896058
+power(add(sub(A, A), add(mul(A, A), mul(B, B))), 1, 2) 0.0027623218992994763
+	add(A, safe_div(mul(B, power(B, 9, 10)), add(power(B, 8, 9), A))) 0.5757465658928267

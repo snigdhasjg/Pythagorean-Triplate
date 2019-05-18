@@ -1,3 +1,6 @@
+import os
+
+
 def retrieve_name(var):
     import inspect
 
@@ -8,8 +11,6 @@ def retrieve_name(var):
 
 
 def search_dir(path):
-    import os
-
     files = os.listdir(path)
     for name in files:
         answer = input('\n{}\nIs this the file? (y/n)'.format(name))
@@ -29,15 +30,20 @@ def save_list(obj):
         pickle.dump(obj, fp)
 
 
-def load_list():
+def load_list(dirname: str = '../logs'):
     import pickle
 
-    filename = search_dir('list')
+    filename = search_dir(dirname)
     if filename is None:
         raise FileNotFoundError
-    with open("list/{}".format(filename), "rb") as fp:  # Unpickling
+    fname = "{}/{}".format(dirname, filename)
+    with open(fname, "rb") as fp:  # Unpickling
         obj = pickle.load(fp)
-    return obj
+    if __name__ != '__main__':
+        old = "{}/{}".format(dirname, filename)
+        new = "{}/{}".format(dirname, filename).replace('logs', 'logs/graph_done')
+        os.rename(old, new)
+    return obj, filename
 
 
 def save_halloffame(hof):
