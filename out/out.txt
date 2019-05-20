@@ -12,3 +12,4 @@ power(add(mul(A, A), power(B, 8, 4)), 1, 2) 0.0029908289674849243
 power(add(power(A, 4, 2), mul(B, B)), 5, 10) 0.0029368952494896058
 power(add(sub(A, A), add(mul(A, A), mul(B, B))), 1, 2) 0.0027623218992994763
 	add(A, safe_div(mul(B, power(B, 9, 10)), add(power(B, 8, 9), A))) 0.5757465658928267
+power(add(mul(A, A), mul(B, B)), 3, 6) 0.041378870546952246

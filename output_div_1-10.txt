@@ -1,0 +1,7 @@
+add(B, safe_div(mul(A, A), add(add(A, B), power(B, 4, 5)))) 17.376931250049825
+power(add(mul(A, A), mul(B, B)), 3, 6) 0.041378870546952246
+add(safe_div(mul(B, B), add(add(B, A), safe_div(power(A, 7, 4), B))), A) 3.0134673880043876
+add(add(9, B), safe_div(8, B)) 162.55141090141208
+add(A, safe_div(B, power(A, safe_div(mul(A, B), power(B, 7, 4)), 7))) 46.23485419486874
+add(10, B) 150.8173385257809
+sub(add(safe_div(power(A, 4, 2), add(A, B)), B), 4) 35.919408292531266

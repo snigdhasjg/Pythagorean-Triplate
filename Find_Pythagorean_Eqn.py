@@ -10,7 +10,7 @@ from deap import creator
 from deap import gp
 from deap import tools
 
-from TripletHelper.My_Helper import ALL_POINTS, safe_power, safe_div
+from TripletHelper.My_Helper import ALL_POINTS, safe_power, safe_div, MY_INFINITY
 from TripletHelper.Saving import save_halloffame
 
 __type__ = float
@@ -61,8 +61,8 @@ def create_toolbox(pset: gp.PrimitiveSetTyped):
     toolbox.register("expr_mut", gp.genFull, min_=0, max_=5)
     toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
 
-    toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=4))
-    toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=4))
+    toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=5))
+    toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=5))
 
     return toolbox
 
@@ -161,6 +161,8 @@ def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame: 
 
     except KeyboardInterrupt:
         print(' Keyboard Interrupted')
+    except Exception as error:
+        print(error)
     finally:
         return population, logbook
 
