@@ -118,12 +118,12 @@ def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame: 
             invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
             try:
                 fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
+                for ind, fit in zip(invalid_ind, fitnesses):
+                    ind.fitness.values = fit
             except OverflowError:
                 print(OverflowError, '\nResetting population')
                 overflow_error.append(gen)
                 continue
-            for ind, fit in zip(invalid_ind, fitnesses):
-                ind.fitness.values = fit
 
             # Update the hall of fame with the generated individuals
             if halloffame is not None:
