@@ -1,6 +1,6 @@
 # Pythagorean-Triplate
 ## Installation
-#### Step 1: Install [Anaconda](https://www.anaconda.com/download/) distribution of python 2.7+ or 3.5+ (recommended)
+#### Step 1: Install [Anaconda](https://www.anaconda.com/download/) distribution of 3.5+ (recommended)
 #### Step 2: Update Anaconda
 ```
 conda update conda
@@ -17,4 +17,6 @@ cd Pythagorean-Triplate
 python Find_Pythagorean_Eqn.py
 ```
 ### Output may look like this
-<img height='250' src='https://github.com/snigdhasjg/Pythagorean-Triplate/blob/master/Image/fig.png' />
+<img height='250' src='/Image/fig.png?raw=true'/>
+
+#### [Project Documentation](/documentation/GP.pdf?raw=true)
