@@ -1,19 +1,31 @@
 import math
 import operator
 from random import randint
-from time import time
+from time import time_ns
 
-import numpy
-from deap import algorithms
 from deap import base
 from deap import creator
 from deap import gp
 from deap import tools
+from pyspark import SparkContext, RDD
 
-from TripletHelper.My_Helper import ALL_POINTS, safe_power, safe_div, MY_INFINITY
+from TripletHelper.My_Helper import ALL_POINTS, safe_power, safe_div
 from TripletHelper.Saving import save_halloffame
+from depark import algorithms as dealgorithms
+from depark import gp as degp
+from depark import tools as detool
 
 __type__ = float
+NO_OF_POPULATION = 500
+
+sc = SparkContext(appName="DEAP")
+log4jLogger = sc.jvm.org.apache.log4j
+log = log4jLogger.LogManager.getLogger(__name__)
+log.warn("Hello world")
+
+
+def spark_map(algorithm, population):
+    return sc.parallelize(population).map(algorithm)
 
 
 def create_primitive_set():
@@ -31,7 +43,7 @@ def create_primitive_set():
 
     pset.addPrimitive(return_int, [__type__], int, name='dummy')
 
-    pset.addEphemeralConstant('rand1-10 %f' % time(), lambda: randint(1, 10), int)
+    pset.addEphemeralConstant('rand%d' % time_ns(), lambda: randint(1, 10), int)
     pset.renameArguments(ARG0='A', ARG1='B')
 
     return pset
@@ -44,7 +56,7 @@ def create_toolbox(pset: gp.PrimitiveSetTyped):
     toolbox = base.Toolbox()
     toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=1, max_=4)
     toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.expr)
-    toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+    toolbox.register("population", detool.initRepeat, sc, toolbox.individual)
     toolbox.register("compile", gp.compile, pset=pset)
 
     def eval_symb_reg(individual, points):
@@ -53,13 +65,15 @@ def create_toolbox(pset: gp.PrimitiveSetTyped):
         # Evaluate the mean squared error between the expression
         # and the real function : x**4 + x**3 + x**2 + x
         sqerrors = ((func(x[0], x[1]) - x[2]) ** 2 for x in points)
-        return math.sqrt(math.fsum(sqerrors)),
+        score = math.sqrt(math.fsum(sqerrors)),
+        individual.fitness.values = score
+        return individual
 
     toolbox.register("evaluate", eval_symb_reg, points=ALL_POINTS)
-    toolbox.register("select", tools.selTournament, tournsize=4)
-    toolbox.register("mate", gp.cxOnePoint)
+    toolbox.register("select", detool.selTournament, sc=sc, tournsize=4)
+    toolbox.register("mate", degp.cxOnePoint, sc)
     toolbox.register("expr_mut", gp.genFull, min_=0, max_=5)
-    toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
+    toolbox.register("mutate", degp.mutUniform, expr=toolbox.expr_mut, pset=pset)
 
     toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=5))
     toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=5))
@@ -67,14 +81,10 @@ def create_toolbox(pset: gp.PrimitiveSetTyped):
     return toolbox
 
 
-def get_numpy_stats():
-    stats_fit = tools.Statistics(lambda ind: ind.fitness.values)
-    stats_size = tools.Statistics(len)
-    mstats = tools.MultiStatistics(fitness=stats_fit, size=stats_size)
-    mstats.register("avg\t", numpy.mean)
-    mstats.register("std\t", numpy.std)
-    mstats.register("min\t", numpy.min)
-    mstats.register("max\t", numpy.max)
+def get_rdd_stats():
+    stats_fit = detool.Statistics(lambda ind: ind.fitness.values)
+    stats_size = detool.Statistics(len)
+    mstats = detool.MultiStatistics(fitness=stats_fit, size=stats_size)
 
     return mstats
 
@@ -82,16 +92,18 @@ def get_numpy_stats():
 overflow_error = []
 
 
-def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame: tools.HallOfFame = None,
+def my_eaSimple(population: RDD, toolbox, cxpb, mutpb, ngen, stats=None, halloffame: tools.HallOfFame = None,
                 verbose=True):
     logbook = tools.Logbook()
     logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
 
     # Evaluate the individuals with an invalid fitness
-    invalid_ind = [ind for ind in population if not ind.fitness.valid]
-    fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
-    for ind, fit in zip(invalid_ind, fitnesses):
-        ind.fitness.values = fit
+    # invalid_ind = [ind for ind in population if not ind.fitness.valid]
+    # fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
+    # for ind, fit in zip(invalid_ind, fitnesses):
+    #     ind.fitness.values = fit
+    invalid_ind = population.filter(lambda x: not x.fitness.valid) \
+        .map(lambda x: toolbox.evaluate(x))
 
     if halloffame is not None:
         halloffame.update(population)
@@ -109,17 +121,19 @@ def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame: 
         # is_last_few_fitness_same = lambda stats_array: abs(numpy.mean(stats_array) - stats_array[0]) < 0.1
         while gen < ngen + 1:
             # Select the next generation individuals
-            offspring = toolbox.select(population, len(population))
+            offspring = toolbox.select(population, population.count())
 
             # Vary the pool of individuals
-            offspring = algorithms.varAnd(offspring, toolbox, cxpb, mutpb)
+            new_offspring = dealgorithms.varAnd(sc, offspring, toolbox, cxpb, mutpb)
 
             # Evaluate the individuals with an invalid fitness
-            invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+            # invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
             try:
-                fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
-                for ind, fit in zip(invalid_ind, fitnesses):
-                    ind.fitness.values = fit
+                # fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
+                # for ind, fit in zip(invalid_ind, fitnesses):
+                #     ind.fitness.values = fit
+                invalid_ind = new_offspring.filter(lambda x: not x.fitness.valid) \
+                    .map(lambda x: toolbox.evaluate(x))
             except OverflowError:
                 print(OverflowError, '\nResetting population')
                 overflow_error.append(gen)
@@ -127,10 +141,10 @@ def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame: 
 
             # Update the hall of fame with the generated individuals
             if halloffame is not None:
-                halloffame.update(offspring)
+                halloffame.update(new_offspring)
 
             # Replace the current population by the offspring
-            population[:] = offspring
+            population = new_offspring
 
             # Append the current generation statistics to the logbook
             record = stats.compile(population) if stats else {}
@@ -155,7 +169,7 @@ def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame: 
 
             if gen % 20 == 0:
                 print('Defining new population after 20 gen')
-                population = toolbox.population(n=500)
+                population = toolbox.population(n=NO_OF_POPULATION)
 
             gen += 1
 
@@ -170,10 +184,10 @@ def my_eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None, halloffame: 
 def main(verbose=True):
     pset = create_primitive_set()
     toolbox = create_toolbox(pset)
-    pop = toolbox.population(n=500)
-    hof = tools.HallOfFame(1)
+    pop = toolbox.population(n=NO_OF_POPULATION)
+    hof = detool.HallOfFame(1)
 
-    pop, log = my_eaSimple(pop, toolbox, 0.8, 0.2, 10000, stats=get_numpy_stats(), halloffame=hof,
+    pop, log = my_eaSimple(pop, toolbox, 0.8, 0.2, 100, stats=get_rdd_stats(), halloffame=hof,
                            verbose=verbose)
 
     print('Best individual : ', hof[0], hof[0].fitness)
