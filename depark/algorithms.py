@@ -1,42 +1,8 @@
+from deap import tools
 from pyspark import SparkContext, RDD
 
 
-def varAnd(sc: SparkContext, population: RDD, toolbox, cxpb, mutpb):
-    """Part of an evolutionary algorithm applying only the variation part
-    (crossover **and** mutation). The modified individuals have their
-    fitness invalidated. The individuals are cloned so returned population is
-    independent of the input population.
-
-    :param sc: pyspark.SparkContext
-    :param population: A rdd of individuals to vary.
-    :param toolbox: A :class:`~deap.base.Toolbox` that contains the evolution
-                    operators.
-    :param cxpb: The probability of mating two individuals.
-    :param mutpb: The probability of mutating an individual.
-    :returns: A rdd of varied individuals that are independent of their
-              parents.
-
-    The variation goes as follow. First, the parental population
-    :math:`P_\mathrm{p}` is duplicated using the :meth:`toolbox.clone` method
-    and the result is put into the offspring population :math:`P_\mathrm{o}`.  A
-    first loop over :math:`P_\mathrm{o}` is executed to mate pairs of
-    consecutive individuals. According to the crossover probability *cxpb*, the
-    individuals :math:`\mathbf{x}_i` and :math:`\mathbf{x}_{i+1}` are mated
-    using the :meth:`toolbox.mate` method. The resulting children
-    :math:`\mathbf{y}_i` and :math:`\mathbf{y}_{i+1}` replace their respective
-    parents in :math:`P_\mathrm{o}`. A second loop over the resulting
-    :math:`P_\mathrm{o}` is executed to mutate every individual with a
-    probability *mutpb*. When an individual is mutated it replaces its not
-    mutated version in :math:`P_\mathrm{o}`. The resulting :math:`P_\mathrm{o}`
-    is returned.
-
-    This variation is named *And* beceause of its propention to apply both
-    crossover and mutation on the individuals. Note that both operators are
-    not applied systematicaly, the resulting individuals can be generated from
-    crossover only, mutation only, crossover and mutation, and reproduction
-    according to the given probabilities. Both probabilities should be in
-    :math:`[0, 1]`.
-    """
+def varAnd(population: RDD, toolbox, cxpb, mutpb):
     # offspring = [toolbox.clone(ind) for ind in population]
     offspring = population.map(toolbox.clone)
 
@@ -60,3 +26,96 @@ def varAnd(sc: SparkContext, population: RDD, toolbox, cxpb, mutpb):
     mutated_offspring = crossover_offspring.map(lambda x: toolbox.mutate(x, mutpb))
 
     return mutated_offspring
+
+
+overflow_error = []
+
+
+def eaSimple(sc: SparkContext, toolbox, cxpb, mutpb, ngen, no_of_population, stats=None, halloffame: tools.HallOfFame = None,
+             verbose=True):
+    population: RDD = toolbox.population(sc=sc, n=no_of_population)
+    logbook = tools.Logbook()
+    logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
+
+    # Evaluate the individuals with an invalid fitness
+    # invalid_ind = [ind for ind in population if not ind.fitness.valid]
+    # fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
+    # for ind, fit in zip(invalid_ind, fitnesses):
+    #     ind.fitness.values = fit
+    invalid_ind = population.filter(lambda x: not x.fitness.valid) \
+        .map(lambda x: toolbox.evaluate(x))
+
+    if halloffame is not None:
+        halloffame.update(population)
+
+    record = stats.compile(population) if stats else {}
+    logbook.record(gen=0, nevals=len(invalid_ind), **record)
+    if verbose:
+        print(logbook.stream)
+
+    # Begin the generational process
+    try:
+        gen = 1
+        # last_few_pop_to_consider = 50
+        # starting_condition = last_few_pop_to_consider
+        # is_last_few_fitness_same = lambda stats_array: abs(numpy.mean(stats_array) - stats_array[0]) < 0.1
+        while gen < ngen + 1:
+            # Select the next generation individuals
+            offspring = toolbox.select(sc, population, population.count())
+
+            # Vary the pool of individuals
+            new_offspring = varAnd(offspring, toolbox, cxpb, mutpb)
+
+            # Evaluate the individuals with an invalid fitness
+            # invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+            try:
+                # fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
+                # for ind, fit in zip(invalid_ind, fitnesses):
+                #     ind.fitness.values = fit
+                invalid_ind = new_offspring.filter(lambda x: not x.fitness.valid) \
+                    .map(lambda x: toolbox.evaluate(x))
+            except OverflowError:
+                print(OverflowError, '\nResetting population')
+                overflow_error.append(gen)
+                continue
+
+            # Update the hall of fame with the generated individuals
+            if halloffame is not None:
+                halloffame.update(new_offspring)
+
+            # Replace the current population by the offspring
+            population = new_offspring
+
+            # Append the current generation statistics to the logbook
+            record = stats.compile(population) if stats else {}
+            logbook.record(gen=gen, nevals=len(invalid_ind), **record)
+            if verbose:
+                print(logbook.stream)
+
+            # stopping criteria
+            min_fitness = record['fitness']['min\t']
+            # max_fitness = record['fitness']['max\t']
+
+            if min_fitness < 0.1:
+                print('Reached desired fitness')
+                break
+
+            # if gen > starting_condition:
+            #     min_stats = logbook.chapters['fitness'].select('min\t')[-last_few_pop_to_consider:]
+            #     if is_last_few_fitness_same(min_stats):
+            #         print('Defining new population')
+            #         population = toolbox.population(n=500)
+            #         starting_condition = gen + last_few_pop_to_consider
+
+            if gen % 20 == 0:
+                print('Defining new population after 20 gen')
+                population = toolbox.population(sc=sc, n=no_of_population)
+
+            gen += 1
+
+    except KeyboardInterrupt:
+        print(' Keyboard Interrupted')
+    except Exception as error:
+        print(error)
+    finally:
+        return population, logbook

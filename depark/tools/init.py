@@ -1,7 +1,7 @@
 from pyspark import SparkContext
 
 
-def initRepeat(sc: SparkContext, func, n):
+def initRepeat(func, sc: SparkContext, n):
     """Call the function *container* with a generator function corresponding
     to the calling *n* times the function *func*.
     :param sc: pyspark.SparkContext
