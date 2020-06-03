@@ -32,8 +32,8 @@ def create_primitive_set():
         return None
 
     pset.addPrimitive(return_int, [__type__], int, name='dummy')
-
-    pset.addEphemeralConstant('rand%d' % time_ns(), lambda: randint(1, 10), int)
+    pset.addTerminal(1, int)
+    # pset.addEphemeralConstant('rand%d' % time_ns(), lambda: randint(1, 10), int)
     pset.renameArguments(ARG0='A', ARG1='B')
 
     return pset

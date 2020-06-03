@@ -42,14 +42,13 @@ def eaSimple(sc: SparkContext, toolbox, cxpb, mutpb, ngen, no_of_population, sta
     # fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
     # for ind, fit in zip(invalid_ind, fitnesses):
     #     ind.fitness.values = fit
-    invalid_ind = population.filter(lambda x: not x.fitness.valid) \
-        .map(lambda x: toolbox.evaluate(x))
+    population = population.map(lambda x: toolbox.evaluate(individual=x))
 
     if halloffame is not None:
         halloffame.update(population)
 
     record = stats.compile(population) if stats else {}
-    logbook.record(gen=0, nevals=len(invalid_ind), **record)
+    logbook.record(gen=0, nevals=population.count(), **record)
     if verbose:
         print(logbook.stream)
 

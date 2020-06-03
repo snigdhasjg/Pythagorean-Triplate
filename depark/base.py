@@ -18,17 +18,18 @@ class Toolbox(object):
         self.population = partial(detool.initRepeat, self.individual)
         self.compile = partial(gp.compile, pset=self.pset)
 
-        def eval_symb_reg(individual, points):
-            # Transform the tree expression in a callable function
-            func = compile(expr=individual)
-            # Evaluate the mean squared error between the expression
-            # and the real function : x**4 + x**3 + x**2 + x
-            sqerrors = ((func(x[0], x[1]) - x[2]) ** 2 for x in points)
-            score = math.sqrt(math.fsum(sqerrors)),
-            individual.fitness.values = score
+        def eval_symb_reg(tb: Toolbox, individual, points):
+            if not individual.fitness.valid:
+                # Transform the tree expression in a callable function
+                func = tb.compile(expr=individual)
+                # Evaluate the mean squared error between the expression
+                # and the real function : x**4 + x**3 + x**2 + x
+                sqerrors = ((func(x[0], x[1]) - x[2]) ** 2 for x in points)
+                score = math.sqrt(math.fsum(sqerrors)),
+                individual.fitness.values = score
             return individual
 
-        self.evaluate = partial(eval_symb_reg, points=ALL_POINTS)
+        self.evaluate = partial(eval_symb_reg, tb=self, points=ALL_POINTS)
         self.select = partial(detool.selTournament, tournsize=4)
         self.mate = partial(degp.cxOnePoint)
         self.expr_mut = partial(gp.genFull, min_=0, max_=5)
