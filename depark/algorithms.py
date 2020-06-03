@@ -31,7 +31,7 @@ def varAnd(population: RDD, toolbox, cxpb, mutpb):
 overflow_error = []
 
 
-def eaSimple(sc: SparkContext, toolbox, cxpb, mutpb, ngen, no_of_population, stats=None, halloffame: tools.HallOfFame = None,
+def eaSimple(sc: SparkContext, toolbox, cxpb, mutpb, ngen, no_of_population, stats=None, halloffame=None,
              verbose=True):
     population: RDD = toolbox.population(sc=sc, n=no_of_population)
     logbook = tools.Logbook()
