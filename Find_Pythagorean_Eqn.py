@@ -33,6 +33,7 @@ def create_primitive_set():
 
     pset.addPrimitive(return_int, [__type__], int, name='dummy')
     pset.addTerminal(1, int)
+    pset.addTerminal(2, int)
     # pset.addEphemeralConstant('rand%d' % time_ns(), lambda: randint(1, 10), int)
     pset.renameArguments(ARG0='A', ARG1='B')
 
@@ -49,7 +50,7 @@ def get_rdd_stats():
 
 def main(verbose=True):
     pset = create_primitive_set()
-    toolbox = debase.Toolbox(pset)
+    toolbox = debase.create_toolbox(pset)
     hof = detool.HallOfFame(1)
 
     sc = SparkContext(appName="DEAP")
